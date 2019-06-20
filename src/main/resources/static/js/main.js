@@ -6,29 +6,43 @@ var usernameForm = document.querySelector('#username-form');
 var messageForm = document.querySelector('#message-form');
 var messageInput = document.querySelector('#message');
 var messageArea = document.querySelector('#message-area');
+var userListArea = document.querySelector('#user-list-area');
+var userList = document.querySelector('#user-list');
 var connectingElement = document.querySelector('.connecting');
 
 var stompClient = null;
 var username = null;
 
 function connect(event) {
+	//2. Grab the username from the #name input field
 	username = document.querySelector('#name').value.trim();
-	
+
 	if(username) {
+		
+		//3. Hide the usernamePage and display the chatPage
 		usernamePage.classList.add('hidden');
 		chatPage.classList.remove('hidden');
-		
+
+		//4. Create a new socket to connect to
 		var socket = new SockJS('/ws');
 		stompClient = Stomp.over(socket);
+		
+		//5. Connect to our stomp server
 		stompClient.connect({}, onConnected, onError);
 	}
-	
+
 	event.preventDefault();
 }
 
 function onConnected() {
+	//6. Whenever the server responds with a message to either of these endpoints call the callback function.
 	stompClient.subscribe('/topic/public', onMessageReceived);
+	stompClient.subscribe('/topic/users', updateUsers);
+	
+	//7. Call these endpoints on the backend and they will respond to a particular topic.
 	stompClient.send("/app/chat.addUser", {}, JSON.stringify({sender: username, type: 'JOIN', content: ''}));
+	stompClient.send("/app/chat.getUsers", {}, "");
+	
 	connectingElement.classList.add('hidden');
 }
 
@@ -38,6 +52,7 @@ function onError(error) {
 }
 
 function sendMessage(event) {
+	//9. Grab the message that is sent
 	var messageContent = messageInput.value.trim();
 	if(messageContent && stompClient) {
 		var chatMessage = {
@@ -46,6 +61,7 @@ function sendMessage(event) {
 				type: 'CHAT'
 		};
 		
+		//10. Send the message to our endpoint at chat.sendMessage
 		stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
 		messageInput.value = '';
 	}
@@ -53,10 +69,11 @@ function sendMessage(event) {
 }
 
 function onMessageReceived(payload) {
+	//11. Receive the message from the server.
 	var message = JSON.parse(payload.body);
 	console.log(message);
 	var messageElement = document.createElement('div');
-	
+
 	if(message.type === 'JOIN') {
 		messageElement.classList.add('event-message');
 		messageElement.innerHTML = '<span style="color:red">' + message.sender + '</span>' +':' + ' has joined.';
@@ -68,13 +85,13 @@ function onMessageReceived(payload) {
         messageElement.classList.add('chat-message');
         var usernameElement = document.createElement('span');
         var usernameText = document.createTextNode(message.sender + ": ");
-        
+
         usernameElement.appendChild(usernameText);
         usernameElement.style.color = 'red';
         messageElement.appendChild(usernameElement);
     }
-	
-	
+
+
     var messageText = document.createTextNode(" " + message.content);
     messageElement.appendChild(messageText);
 
@@ -82,5 +99,23 @@ function onMessageReceived(payload) {
     messageArea.scrollTop = messageArea.scrollHeight;
 }
 
+function updateUsers(payload) {
+	payload.body = payload.body.replace(/[\[\]"]+/g, "");
+	var users = payload.body.split(",");
+	
+	while(userList.firstChild) {
+		userList.removeChild(userList.firstChild);
+	}
+	
+	for(var i = 0; i < users.length; i++) {
+		var userItem = document.createElement('li')
+		userItem.textContent = users[i];
+		userList.appendChild(userItem);
+	}
+}
+
+//1. When usernameForm is submitted, execute the connect function
 usernameForm.addEventListener('submit', connect, true)
+
+//8. When the a message is entered called the sendMessage function
 messageForm.addEventListener('submit', sendMessage, true)

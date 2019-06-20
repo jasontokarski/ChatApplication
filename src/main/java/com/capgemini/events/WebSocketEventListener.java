@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import com.capgemini.controller.ChatController;
 import com.capgemini.model.ChatMessage;
 
 @Component
@@ -21,7 +22,12 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        logger.info("Received a new web socket connection");
+    	StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+    	String username = (String) headerAccessor.getSessionAttributes().get("username");
+    	if(username != null) {
+    		
+    	}
+        logger.info("User Connected : " + username);
     }
 
     @EventListener
@@ -32,11 +38,13 @@ public class WebSocketEventListener {
         if(username != null) {
             logger.info("User Disconnected : " + username);
 
+            ChatController.userList.remove(username);
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setType(ChatMessage.MessageType.LEAVE);
             chatMessage.setSender(username);
 
             messagingTemplate.convertAndSend("/topic/public", chatMessage);
+            messagingTemplate.convertAndSend("/topic/users", ChatController.userList);
         }
     }
 }
