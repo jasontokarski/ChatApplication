@@ -13,8 +13,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		//1. Create new endpoints for SockJS to connect to
-		registry.addEndpoint("/ws").withSockJS();
-		registry.addEndpoint("/users").withSockJS();
+		registry.addEndpoint("/ws", "/users").withSockJS();
 	}
 	
 	@Override

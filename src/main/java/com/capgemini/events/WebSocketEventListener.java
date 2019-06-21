@@ -22,12 +22,8 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-    	StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-    	String username = (String) headerAccessor.getSessionAttributes().get("username");
-    	if(username != null) {
-    		
-    	}
-        logger.info("User Connected : " + username);
+    	messagingTemplate.convertAndSend("/topic/userCount", ChatController.userList);
+        logger.info("A user has connected");
     }
 
     @EventListener
@@ -37,7 +33,7 @@ public class WebSocketEventListener {
         String username = (String) headerAccessor.getSessionAttributes().get("username");
         if(username != null) {
             logger.info("User Disconnected : " + username);
-
+            ChatController.numberOfUsersConnected--;
             ChatController.userList.remove(username);
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setType(ChatMessage.MessageType.LEAVE);
@@ -45,6 +41,7 @@ public class WebSocketEventListener {
 
             messagingTemplate.convertAndSend("/topic/public", chatMessage);
             messagingTemplate.convertAndSend("/topic/users", ChatController.userList);
+            messagingTemplate.convertAndSend("/topic/userCount", ChatController.numberOfUsersConnected);
         }
     }
 }

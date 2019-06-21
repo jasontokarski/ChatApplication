@@ -7,19 +7,20 @@
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 	</head>
 	<body>
+		<div id="main-container">
 			<div id="username-page">
 				<form id="username-form" name="username-form">
-					<h2>Enter the chat room. (
-						<div id="numberOfUsers">
-						</div>
-					users connected.)</h2>
+					<h2>Enter the chat room.<br/>
+						<span id="numberOfUsers">
+						</span>
+					user(s) connected.</h2>
 					
 					<input type="text" id="name" placeholder="Username">
 					<br /><br />
 					<button type="submit">Enter chat room</button>
 				</form>
 			</div>
-
+	
 			<div id="chat-page" class="hidden">
 				<div class="chat-container">
 				<div class="user-list-label">User List</div>
@@ -32,7 +33,7 @@
 							<ul id="user-list" class="list-unstyled">
 							</ul>
 		    		</div>
-
+	
 				    <form class="form" id="message-form">
 				    	<div class="form-group">
 				    		<div class="input-group clearfix">
@@ -43,6 +44,7 @@
 				    </form>
 				</div>
 			</div>
+		</div>
 
 		<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>

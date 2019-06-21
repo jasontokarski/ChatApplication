@@ -13,7 +13,7 @@ import com.capgemini.model.ChatMessage;
 
 @Controller
 public class ChatController {
-	
+	public static int numberOfUsersConnected = 0;
 	public static List<String> userList = new ArrayList<>();
 	
 	@MessageMapping("/chat.sendMessage")
@@ -25,7 +25,8 @@ public class ChatController {
     @MessageMapping("/chat.addUser")
     @SendTo("/topic/public")
     public ChatMessage addUser(@Payload ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
-        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+        numberOfUsersConnected++;
+    	headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
         userList.add(chatMessage.getSender());
         return chatMessage;
     }
@@ -39,6 +40,6 @@ public class ChatController {
     @MessageMapping("/chat.getUserCount")
     @SendTo("/topic/userCount")
     public int getUserCount() {
-    	return userList.size();
+    	return numberOfUsersConnected;
     }
 }
