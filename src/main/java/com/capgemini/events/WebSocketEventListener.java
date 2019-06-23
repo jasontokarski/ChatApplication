@@ -22,7 +22,7 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-    	messagingTemplate.convertAndSend("/topic/userCount", ChatController.userList);
+    	//messagingTemplate.convertAndSend("/topic/userCount", ChatController.userList);
         logger.info("A user has connected");
     }
 

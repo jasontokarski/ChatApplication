@@ -8,54 +8,75 @@ var messageInput = document.querySelector('#message');
 var messageArea = document.querySelector('#message-area');
 var userListArea = document.querySelector('#user-list-area');
 var userList = document.querySelector('#user-list');
+var displayUserExistsMessage = document.querySelector('#username-exists');
 var connectingElement = document.querySelector('.connecting');
 
 var stompClient = null;
-var clientCount = null;
+var clientInfo = null;
+var userExistsSubscription = null;
 var username = null;
+var userExists = 'false';
+var hasAttemptedConnection = false;
+var colorSwitch = 1;
 
-usernameForm.addEventListener('submit', connect, true)
+usernameForm.addEventListener('submit', joinChat, true)
 messageForm.addEventListener('submit', sendMessage, true)
 
 window.onload = function() {
 	var userConnectedSocket = new SockJS('/users');
-	clientCount = Stomp.over(userConnectedSocket);
-	clientCount.connect({}, initialConnect, onError);
+	clientInfo = Stomp.over(userConnectedSocket);
+	clientInfo.connect({}, initialConnect, onError);
 };
 
 function initialConnect() {
-	clientCount.subscribe('/topic/userCount', numberOfUsersConnected);
-	clientCount.send("/app/chat.getUserCount", {}, "");
+	clientInfo.subscribe('/topic/userCount', numberOfUsersConnected);
+	userExistsSubscription = clientInfo.subscribe('/topic/userExists', doesUserExist);
+	clientInfo.send("/app/chat.getUserCount", {}, "");
 }
 
 function numberOfUsersConnected(payload){
 	var currentlyConnected = document.querySelector('#numberOfUsers');
+	console.log('There are currently: ' + payload.body + ' users connected');
 	while(currentlyConnected.firstChild) {
 		currentlyConnected.removeChild(currentlyConnected.firstChild);
 	}
 	currentlyConnected.appendChild(document.createTextNode(payload.body));		
 }
 
-function connect(event) {
+function doesUserExist(payload) {
+	userExists = payload.body;
+}
+
+function joinChat(event) {
+	hasAttemptedConnection = true;
 	username = document.querySelector('#name').value.trim();
-
-	if(username) {
-		usernamePage.classList.add('hidden');
-		chatPage.classList.remove('hidden');
-
-		var socket = new SockJS('/ws');
-		stompClient = Stomp.over(socket);
-		
-		stompClient.connect({}, onConnected, onError);
-	}
-
+	clientInfo.send("/app/chat.doesUserExist", {}, JSON.stringify(username));	
+	
+	setTimeout(function() {
+		if(username && userExists == 'false') {
+			userExistsSubscription.unsubscribe();
+			var socket = new SockJS('/ws');
+			stompClient = Stomp.over(socket);
+			stompClient.connect({}, onConnected, onError);
+		}else if (hasAttemptedConnection) {
+			var errorMessage = document.createElement('span');
+			while (displayUserExistsMessage.firstChild){
+				displayUserExistsMessage.removeChild(displayUserExistsMessage.firstChild);
+			}
+			errorMessage.setAttribute('style', 'color:red;');
+			errorMessage.appendChild(document.createTextNode('Username is in use, please try a different username.'));
+			displayUserExistsMessage.appendChild(errorMessage);
+		}
+	}, 100);
+	
 	event.preventDefault();
 }
 
 function onConnected() {
-	stompClient.subscribe('/topic/public', onMessageReceived);
-	stompClient.subscribe('/topic/users', updateUsers);
-	
+	usernamePage.classList.add('hidden');
+	chatPage.classList.remove('hidden');
+	stompClient.subscribe('/topic/sendMessage', onMessageReceived);
+	stompClient.subscribe('/topic/getUsers', updateUsers);
 	stompClient.send("/app/chat.addUser", {}, JSON.stringify({sender: username, type: 'JOIN', content: ''}));
 	stompClient.send("/app/chat.getUsers", {}, "");
 	
@@ -84,9 +105,16 @@ function sendMessage(event) {
 
 function onMessageReceived(payload) {
 	var message = JSON.parse(payload.body);
-	console.log(message);
 	var messageElement = document.createElement('div');
-
+	
+	if(colorSwitch == 1) {
+		messageElement.style.backgroundColor = '#FAFAFA';
+		colorSwitch--;
+	} else {
+		messageElement.style.backgroundColor = '#F5F5F5';
+		colorSwitch++;
+	}
+	
 	if(message.type === 'JOIN') {
 		messageElement.classList.add('event-message');
 		messageElement.innerHTML = '<span style="color:red">' + message.sender + '</span>' +':' + ' has joined.';
@@ -116,7 +144,7 @@ function updateUsers(payload) {
 	payload.body = payload.body.replace(/[\[\]"]+/g, "");
 	var users = payload.body.split(",");
 	
-	while(userList.firstChild) {
+ 	while(userList.firstChild) {
 		userList.removeChild(userList.firstChild);
 	}
 	

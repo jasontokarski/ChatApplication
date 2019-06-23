@@ -3,30 +3,37 @@
 }
 
 #main-container {
+	width: 700px;
 	max-width: 700px;
     margin-left: auto;
     margin-right: auto;
     box-shadow: 0 1px 11px rgba(0, 0, 0, 0.27);
+    height: 410px;
     max-height: 600px;
     position: relative;
     padding: 5px 10px 10px 10px;
     margin-top: 10%;
+    vertical-align: middle;
 }
 
 #username-page {
     text-align: center;
+    position: relative;
+    top: 45%;
+    transform: translatey(-50%);
 }
 
 #username-form {
 	vertical-align: middle;
 }
 
+#username-form-label {
+	margin-bottom: 20px;
+}
+
 #chat-page {
     position: relative;
     height: 100%;
-}
-
-.chat-container {
 }
 
 #message-area {
@@ -35,7 +42,7 @@
 	height: 300px;
 	overflow: auto;
 	overflow-wrap: break-word;
-	width: 70%;
+	width: 74%;
 	float: left;
 }
 
