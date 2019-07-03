@@ -39,7 +39,7 @@ public class WebSocketEventListener {
             chatMessage.setType(ChatMessage.MessageType.LEAVE);
             chatMessage.setSender(username);
 
-            messagingTemplate.convertAndSend("/topic/public", chatMessage);
+            messagingTemplate.convertAndSend("/topic/sendMessage", chatMessage);
             messagingTemplate.convertAndSend("/topic/users", ChatController.userList);
             messagingTemplate.convertAndSend("/topic/userCount", ChatController.numberOfUsersConnected);
         }

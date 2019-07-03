@@ -115,13 +115,23 @@ function onMessageReceived(payload) {
 		colorSwitch++;
 	}
 	
+	console.log("Message received! " + message.type);
 	if(message.type === 'JOIN') {
 		messageElement.classList.add('event-message');
 		messageElement.innerHTML = '<span style="color:red">' + message.sender + '</span>' +':' + ' has joined.';
-	} else if (message.type ==='LEAVE') {
+	} else if(message.type ==='LEAVE') {
         messageElement.classList.add('event-message');
         messageElement.innerHTML = '<span style="color:red">' + message.sender + '</span>' +':' + ' has left.';
         message.content = '';
+	} else if(message.type === 'CORRECT') {
+		messageElement.classList.add('chat-message');
+		var usernameElement = document.createElement('span');
+		var usernameText = document.createTextNode(message.sender + ": ");
+        usernameElement.appendChild(usernameText);
+        usernameElement.style.color = 'red';
+        messageElement.appendChild(usernameElement);
+        console.log("About to send correctAnswer");
+        stompClient.send("/app/chat.correctAnswer", {}, message.sender);
 	}else {
         messageElement.classList.add('chat-message');
         var usernameElement = document.createElement('span');
